@@ -106,6 +106,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>producer-image</finalName>
 	</build>
 
 </project>
