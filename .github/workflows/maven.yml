@@ -13,6 +13,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -31,11 +32,12 @@ jobs:
         run: mvn clean install
 
       - name: Build & push Docker image
-        uses: mr-smithers-excellent/docker-build-push@v6
+        uses: azure/docker-login@v1
         with:
-          image: sravanikosuru/producer-image
-          tags: latest
-          registry: docker.io
-          dockerfile: Dockerfile
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          login-server: ${{ secrets.ACR_ENDPOINT }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+      - run: |
+          docker build . -t ${{ secrets.ACR_ENDPOINT }}/location:${{ github.sha }}
+          docker push ${{ secrets.ACR_ENDPOINT }}/location:${{ github.sha }}
+
