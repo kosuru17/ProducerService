@@ -28,7 +28,6 @@ public class LocationProducerHandler {
             Mono<String> response = jsonData.doOnNext(value -> kafkaProducerService.publishToKafkaTopic(topic, value))
                     .then(Mono.just("Data published to Kafka"))
                     .onErrorResume(e -> Mono.error(new LocationApiException("An error occurred while data processing..!!")));
-            response.subscribe();
             return ServerResponse.ok().body(response, String.class);
         } catch (Exception e) {
             return Mono.error(e);

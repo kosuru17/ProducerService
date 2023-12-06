@@ -37,7 +37,7 @@ public class AzureBlobStorageService {
             BlobServiceClient blobServiceClient = new BlobServiceClientBuilder().connectionString(String.format(azureUrl, storageAccountName, storageAccountKey))
                     .buildClient();
 
-            return Flux.defer(() -> {
+            Flux<String> stringFlux = Flux.defer(() -> {
                     BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient(containerName);
                     return Flux.fromIterable(containerClient.listBlobs()).flatMap(blobItem -> {
                                 String blobName = blobItem.getName();
@@ -46,14 +46,14 @@ public class AzureBlobStorageService {
                             .subscribeOn(Schedulers.boundedElastic())
                             .onErrorResume(e->Mono.error(new AzureStorageException("Error while reading data from Azure blob storage.")));
 
-            });
+            }).subscribeOn(Schedulers.boundedElastic());
+            return stringFlux;
 
 
         }
 
         public Mono<String> readJsonFileFromBlob (BlobContainerClient containerClient, String blobName) {
-            String expression = "Select * from BlobStorage ";
-            return Mono.fromCallable(() -> containerClient.getBlobClient(blobName).openInputStream())
+            Mono<String> jsonString =  Mono.fromCallable(() -> containerClient.getBlobClient(blobName).openInputStream())
                     .map(inputStream -> {
                         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
                             StringBuilder jsonContent = new StringBuilder();
@@ -68,8 +68,9 @@ public class AzureBlobStorageService {
                             }
                           System.out.println(jsonContent.toString());
                         return jsonContent.toString();
-                        });
-
+                        }).doOnError(e-> new RuntimeException("Error while reading content from Azure  blob storage.."+e.getMessage()));
+            jsonString.subscribeOn(Schedulers.boundedElastic());
+            return jsonString;
         }
 }
 
