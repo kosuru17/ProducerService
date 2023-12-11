@@ -4,6 +4,7 @@ import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.ibm.locationproducer.exception.AzureStorageException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 
+@Slf4j
 @Service
 public class AzureBlobStorageService {
 
@@ -60,13 +62,13 @@ public class AzureBlobStorageService {
                             String line;
                             while (true) {
                                 try {
-                                    if (!((line = reader.readLine()) != null)) break;
+                                    if (((line = reader.readLine()) == null)) break;
                                 } catch (IOException e) {
-                                    throw new RuntimeException(e);
+                                    throw new RuntimeException(e.getMessage());
                                 }
                                 jsonContent.append(line);
                             }
-                          System.out.println(jsonContent.toString());
+                            log.info(jsonContent.toString());
                         return jsonContent.toString();
                         }).doOnError(e-> new RuntimeException("Error while reading content from Azure  blob storage.."+e.getMessage()));
             jsonString.subscribeOn(Schedulers.boundedElastic());

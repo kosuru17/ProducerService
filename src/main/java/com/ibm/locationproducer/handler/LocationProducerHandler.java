@@ -17,6 +17,7 @@ public class LocationProducerHandler {
 
     private final AzureBlobStorageService azureBlobStorageService;
 
+
     private final KafkaProducerService kafkaProducerService;
 
     @Value("${spring.kafka.topic.name}")
